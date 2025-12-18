@@ -1,0 +1,56 @@
+@startuml
+title Процесс заказа в интернет-магазине
+
+actor client
+participant "online-store" as store
+participant warehouse
+participant "payment-system" as payment
+
+activate client
+
+group opt [Клиент не аутентифицирован]
+  client -> store: 1 Ввести логин и пароль
+  activate store
+  store -> store: 2 аутентифицикация\n   клиента
+  store -> client: 3 ответ об успешной\n   аутентификации
+  deactivate store
+end
+
+
+client -> store: 4 Нажать на карточку товара
+activate store
+store -> warehouse: 5 Отправить запрос\n   на наличие товара
+activate warehouse
+warehouse -> store: 6 Ответ
+deactivate warehouse
+
+alt Товар в наличии
+  store -> client: 7 Открыть карточку товара
+  deactivate store
+  client -> store: 8 Положить товар в корзину
+  activate store
+  
+  par 
+    store -> warehouse: 9 Отправить запрос на\n   резервирование товара
+    activate warehouse
+    warehouse -> warehouse: 10 Зарезервировать\n     товар
+    warehouse -> store: 11 Ответ
+    deactivate warehouse
+    else
+    
+    store -> payment: 12 Отправить запрос на\n     создание черновика платежа
+    activate payment
+    payment -> payment: 13 Создать черновик\n     платежа
+    payment -> store: 14 Ответ
+    deactivate payment
+  end
+  
+  store -> client: 15 Открыть корзину
+  
+else Товара в наличии нет
+  store -> client: 16 Отобразить уведомление\n     о том, что товар закончился
+  deactivate store
+end
+deactivate client
+
+@enduml
