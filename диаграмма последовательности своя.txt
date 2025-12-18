@@ -1,0 +1,72 @@
+@startuml
+title Процесс возврата товара в магазине
+
+actor "Клиент" as Customer
+participant "Кассир" as Cashier
+participant "Система учета" as System
+participant "Склад" as Warehouse
+
+activate Customer
+
+group Проверка товара и документов
+  Customer -> Cashier: Предъявляет товар и чек
+  activate Cashier
+  Cashier -> Cashier: Проверяет состояние товара\nи срок возврата
+  
+  
+  alt Товар соответствует условиям
+    Cashier -> Customer: "Товар принимается к возврату"
+
+    Customer -> Cashier: Заполняет заявление на возврат
+  else Товар не соответствует условиям
+    Cashier -> Customer: "Возврат невозможен (причина)"
+    deactivate Cashier
+    Customer -> Customer: Забирает товар
+  end
+end
+
+
+group Оформление возврата
+  Cashier -> System: Создание заявки на возврат
+  activate System
+  System -> System: Проверка данных покупки\nи расчет суммы возврата
+  System --> Cashier: Данные для возврата
+  deactivate System
+  
+  Cashier -> Cashier: Распечатывает акт возврата
+  
+  Customer -> Cashier: Подписывает акт возврата
+  activate Cashier
+  Cashier -> Customer: Выдает деньги/делает возврат на карту
+  deactivate Cashier
+end
+
+
+group Прием товара на склад 
+  opt Товар в исправном состоянии
+    Cashier -> Warehouse: Передает товар на склад
+    activate Warehouse
+    Warehouse -> Warehouse: Проверка и маркировка
+    Warehouse -> System: Обновление остатков
+    activate System
+    System --> Warehouse: Подтверждение
+    deactivate System
+    Warehouse --> Cashier: Подтверждение приема
+    deactivate Warehouse
+  else Товар поврежден
+    Cashier -> Warehouse: Передает в брак
+    Warehouse -> Warehouse: Утилизация
+  end
+end
+
+Cashier -> System: Завершение операции возврата
+activate System
+System -> System: Закрытие заявки\nи обновление статистики
+System --> Cashier: Операция завершена
+deactivate System
+
+Cashier -> Customer: "Возврат оформлен. Спасибо!"
+
+deactivate Customer
+
+@enduml
